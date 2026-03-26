@@ -99,11 +99,20 @@ export default function UploadPage() {
           ) : (
             <>
               <Upload size={48} color="rgba(255,255,255,0.2)" style={{ marginBottom: '1.5rem', margin: '0 auto' }} />
-              <h3 style={{ marginBottom: '0.5rem', color: '#fff' }}>Select Data Source</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--aura-text-muted)' }}>PDF or TXT supported (Max 10MB)</p>
+              <h3 style={{ marginBottom: '0.5rem', color: '#fff' }}>Select Multimodal Source</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--aura-text-muted)', maxWidth: '400px', margin: '0 auto' }}>
+                PDF, DOCX, XLSX, PPTX, CSV, JSON, MD supported. 
+                <br/>(Download Google Docs/Sheets as PDF or Office to index)
+              </p>
             </>
           )}
-          <input type="file" id="file-upload" style={{ display: 'none' }} accept=".pdf,.txt" onChange={(e) => setFile(e.target.files[0])} />
+          <input 
+            type="file" 
+            id="file-upload" 
+            style={{ display: 'none' }} 
+            accept=".pdf,.txt,.docx,.xlsx,.xls,.pptx,.csv,.json,.md" 
+            onChange={(e) => setFile(e.target.files[0])} 
+          />
         </div>
 
         {error && (

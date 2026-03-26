@@ -4,7 +4,7 @@ import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
 import { query } from '../db/index.js';
 import { chunkText } from '../utils/openai.js';
 import { generateLocalEmbedding } from '../utils/localEmbeddings.js';
-import { extractPdfText } from '../utils/pdf.js';
+import { extractTextFromBuffer } from '../utils/documentProcessor.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -40,12 +40,7 @@ router.post('/', ClerkExpressRequireAuth(), upload.single('file'), async (req, r
     const docId = docRes.rows[0].id;
 
     // 3. Extract text
-    let text = '';
-    if (mimetype === 'application/pdf') {
-      text = await extractPdfText(buffer);
-    } else {
-      text = buffer.toString('utf-8');
-    }
+    const text = await extractTextFromBuffer(buffer, mimetype, originalname);
 
     // 4. Chunk and Embed
     const chunks = chunkText(text);

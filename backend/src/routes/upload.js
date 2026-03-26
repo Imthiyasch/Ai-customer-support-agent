@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
+import { ClerkExpressRequireAuth, createClerkClient } from '@clerk/clerk-sdk-node';
 import { query } from '../db/index.js';
 import { chunkText } from '../utils/openai.js';
 import { generateLocalEmbedding } from '../utils/localEmbeddings.js';
@@ -9,6 +9,24 @@ import { extractTextFromBuffer } from '../utils/documentProcessor.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
+const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+
+/**
+ * Helper: Sync/Update User Identity from Clerk
+ * Ensures the 'users' table has the latest real name and email.
+ */
+async function syncUserIdentity(userId) {
+  try {
+    const user = await clerkClient.users.getUser(userId);
+    const email = user.emailAddresses?.[0]?.emailAddress || 'unknown@clerk';
+    const name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || email.split('@')[0];
+    await query('INSERT INTO users (id, email) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET email = $2', [userId, email]);
+    return { email, name };
+  } catch (error) {
+    console.error('Clerk Sync Error:', error);
+    return { email: 'unknown@clerk', name: 'Aura Guest' };
+  }
+}
 
 /**
  * Vercel Blob: Client-Side Upload Security Handshake
@@ -55,7 +73,7 @@ router.post('/process-blob', ClerkExpressRequireAuth(), async (req, res) => {
     const originalname = blobUrl.split('/').pop().split('?')[0];
 
     // 2. Logic to Get KB or Create
-    await query('INSERT INTO users (id, email) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING', [userId, 'user@clerk']);
+    await syncUserIdentity(userId); // Live Identity Refresh!
     let kbRes = await query('SELECT id FROM knowledge_bases WHERE user_id = $1 AND name = $2', [userId, kbName]);
     let kbId;
     if (kbRes.rows.length === 0) {
@@ -104,7 +122,7 @@ router.post('/', ClerkExpressRequireAuth(), upload.single('file'), async (req, r
 
   try {
     // 0. Ensure user exists in our local DB
-    await query('INSERT INTO users (id, email) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING', [userId, 'user@clerk']);
+    await syncUserIdentity(userId); // Live Identity Refresh!
 
     // 1. Get or create knowledge base
     let kbRes = await query('SELECT id FROM knowledge_bases WHERE user_id = $1 AND name = $2', [userId, kbName]);

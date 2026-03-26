@@ -29,6 +29,15 @@ app.use(cors({
 
 app.use(express.json());
 
+// Root - Aura Status
+app.get('/', (req, res) => {
+  res.json({ 
+    engine: 'Aura Intelligence v2.0',
+    status: 'Operational', 
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });

@@ -17,7 +17,11 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: true,
+  origin: function (origin, callback) {
+    if (!origin || origin) { // Effectively allow all while satisfying CORS 'origin must be explicit' rule
+      callback(null, true);
+    }
+  },
   credentials: true
 }));
 

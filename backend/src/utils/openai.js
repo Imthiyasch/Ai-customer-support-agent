@@ -29,6 +29,7 @@ export async function generateEmbedding(text) {
     const response = await openai.embeddings.create({
       model: 'text-embedding-3-small',
       input: text.replace(/\n/g, ' '),
+      dimensions: 384, // Align with Neon vector(384)
     });
     return response.data[0].embedding;
   } catch (error) {

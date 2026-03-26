@@ -27,9 +27,14 @@ router.get('/stats', ClerkExpressRequireAuth(), adminOnly, async (req, res) => {
 router.get('/activity', ClerkExpressRequireAuth(), adminOnly, async (req, res) => {
   try {
     const activity = await query(`
-      SELECT 'document_uploaded' as type, filename as name, created_at FROM documents
+      SELECT 'document_uploaded' as action, d.filename as kb_name, u.email as user_email, d.created_at 
+      FROM documents d
+      JOIN knowledge_bases kb ON d.knowledge_base_id = kb.id
+      JOIN users u ON kb.user_id = u.id
       UNION ALL
-      SELECT 'chat_started' as type, title as name, created_at FROM chats
+      SELECT 'chat_started' as action, c.title as kb_name, u.email as user_email, c.created_at 
+      FROM chats c
+      JOIN users u ON c.user_id = u.id
       ORDER BY created_at DESC LIMIT 50
     `);
     res.json(activity.rows);

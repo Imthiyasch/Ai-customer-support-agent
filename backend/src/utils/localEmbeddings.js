@@ -10,8 +10,8 @@ let extractor;
 // Initialize the model (it downloads on the first run, then caches)
 export async function getExtractor() {
   if (!extractor) {
-    // Model: BGE-Small-EN-v1.5 (Excellent RAG performance, 384 dimensions)
-    extractor = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5');
+    // Model: Multilingual MiniLM (Excellent RAG performance across 50+ languages)
+    extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
   }
   return extractor;
 }

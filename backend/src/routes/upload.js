@@ -106,7 +106,7 @@ router.post('/process-blob', ClerkExpressRequireAuth(), async (req, res) => {
     res.json({ message: 'Cloud document processed', kbId, docId, chunks: chunks.length });
   } catch (err) {
     console.error('Blob process error:', err);
-    res.status(500).json({ error: 'Cloud synthesis failed' });
+    res.status(500).json({ error: err.message || 'Cloud synthesis failed' });
   }
 });
 
